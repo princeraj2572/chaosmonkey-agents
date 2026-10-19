@@ -35,7 +35,7 @@ class ToolCallRecord:
 def _text(value: Any) -> str:
     if isinstance(value, str):
         return value
-    return json.dumps(value, sort_keys=True, ensure_ascii=False)
+    return json.dumps(value, sort_keys=True, ensure_ascii=False, default=str)
 
 
 @dataclass

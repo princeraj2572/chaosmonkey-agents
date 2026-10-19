@@ -1,0 +1,2 @@
+# ChaosMonkey intentionally has no third-party runtime dependencies.
+# Keep this file as the reproducibility lock for the standard-library-only build.
