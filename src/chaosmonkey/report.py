@@ -53,6 +53,13 @@ def render_json(result: Any, *, indent: int = 2) -> str:
     return json.dumps(_as_dict(result), indent=indent, sort_keys=True, default=str) + "\n"
 
 
+MOCK_NOTE = "mock-naive and mock-careful are scripted stand-ins, not language models; their numbers do not describe real model behavior."
+
+
+def _mock_note(data: Mapping[str, Any]) -> str:
+    return MOCK_NOTE if str((data.get("metadata") or {}).get("model", "")).startswith("mock-") else ""
+
+
 def render_terminal(result: Any, *, worst: int = 3) -> str:
     data = _as_dict(result)
     counts = _counts(data)
@@ -60,6 +67,8 @@ def render_terminal(result: Any, *, worst: int = 3) -> str:
     lines.append(f"runs={len(_runs(data))} seeds={data.get('seeds', [])} model={(data.get('metadata') or {}).get('model', 'custom')}")
     lines.append("outcomes: " + ", ".join(f"{key}={counts[key]}" for key in sorted(counts)))
     lines.append(f"silent failure rate: {_silent_rate(data):.1%}")
+    if _mock_note(data):
+        lines.append("note: " + MOCK_NOTE)
     baseline = next((run for run in _runs(data) if run.get("mode") == "baseline"), None)
     if baseline:
         lines.append(f"baseline: {baseline.get('outcome', 'unknown')} ({baseline.get('duration_ms', 0)} ms)")
@@ -148,6 +157,7 @@ def render_html(result: Any, *, title: str = "ChaosMonkey report", worst: int = 
     body = (
         f"<h1>{html.escape(title)}</h1><p class=\"muted\">Example: {html.escape(str(data.get('example', 'experiment')))} · "
         f"Model: {html.escape(str((data.get('metadata') or {}).get('model', 'custom')))} · seeds: {html.escape(str(data.get('seeds', [])))}</p>"
+        f"<p class=\"muted\">{html.escape(_mock_note(data))}</p>"
         f"<div class=\"cards\">{cards}</div><h2>Runs</h2>"
         "<table><thead><tr><th>Mode</th><th>Seed</th><th>Outcome</th><th>Fault</th><th>Call</th><th>Reason</th></tr></thead>"
         f"<tbody>{''.join(rows)}</tbody></table><h2>Worst traces</h2>{''.join(details) or '<p>No chaos traces.</p>'}"

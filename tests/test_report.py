@@ -21,6 +21,14 @@ class ReportTests(unittest.TestCase):
         self.assertNotIn("http://", html)
         self.assertNotIn("https://", html)
 
+    def test_mock_models_are_labelled_as_scripted(self):
+        data = self.result.to_dict()
+        data["metadata"] = {"model": "mock-naive"}
+        self.assertIn("scripted stand-ins", render_terminal(data))
+        self.assertIn("scripted stand-ins", render_html(data))
+        data["metadata"] = {"model": "anthropic:x"}
+        self.assertNotIn("scripted stand-ins", render_terminal(data))
+
     def test_comparison_contains_delta(self):
         html = render_compare_html(self.result.to_dict(), self.result.to_dict(), left_name="naive", right_name="careful")
         self.assertIn("Delta", html)
